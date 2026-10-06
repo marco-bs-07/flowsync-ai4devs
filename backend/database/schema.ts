@@ -39,7 +39,12 @@ export class TaskSchema extends BaseModel {
   declare assigneeId: number
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
-  @column()
+  @column({ consume: (value)=>{
+                                    if (value instanceof Date) {
+                                        return value.toISOString().slice(0, 10);
+                                    }
+                                    return value;
+                                } })
   declare dueDate: string | null
   @column({ isPrimary: true })
   declare id: number

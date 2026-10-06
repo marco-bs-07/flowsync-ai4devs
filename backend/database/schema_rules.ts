@@ -29,7 +29,19 @@ export default {
           // al leer la columna, y ponerlo aquí lo deja repetido.
           tsType: 'string',
           imports: [],
-          decorators: [{ name: '@column' }],
+          decorators: [
+            {
+              name: '@column',
+              args: {
+                consume: (value: unknown) => {
+                  if (value instanceof Date) {
+                    return value.toISOString().slice(0, 10)
+                  }
+                  return value
+                },
+              },
+            },
+          ],
         },
       },
     },
