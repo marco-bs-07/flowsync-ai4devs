@@ -1,0 +1,47 @@
+# FlowSync — bases de datos PostgreSQL para desarrollo y pruebas.
+#
+# Se levanta desde la raíz con `make db-up`, que espera a que los dos servicios
+# estén sanos antes de devolver el control (la imagen crea la base la primera
+# vez y no acepta conexiones mientras tanto).
+
+services:
+  # Base de desarrollo: persistente, en un volumen con nombre.
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync
+    ports:
+      - '54410:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U flowsync -d flowsync']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+  # Base de pruebas: efímera, sin volumen. Los datos viven en un tmpfs (memoria)
+  # montado sobre el directorio de datos; así tampoco se crea el volumen anónimo
+  # que la imagen declara para ese directorio. Cada `up` arranca con la base vacía.
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_test
+    ports:
+      - '54411:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U flowsync -d flowsync_test']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  db-data:
